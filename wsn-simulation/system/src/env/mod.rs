@@ -1,0 +1,12 @@
+pub mod config;
+pub mod db;
+
+use crate::path::{SysPath};
+use std::sync::Mutex;
+
+trait Env {
+    fn get<'a>() -> &'a Mutex<Self>;
+    fn new(path: SysPath) -> Self;
+    fn set_env(path: &SysPath) -> ();
+    fn read_env() -> Self;
+}

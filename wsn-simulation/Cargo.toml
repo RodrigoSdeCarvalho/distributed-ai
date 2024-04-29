@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "sensors",
+    "system",
+    "macros/benchmark_macro"
+]
+
+resolver = "2"

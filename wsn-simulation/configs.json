@@ -1,0 +1,13 @@
+{
+  "log" : {
+    "on" : true,
+    "debug" : true,
+    "save" : false,
+    "kinds" : {
+      "trace" : true,
+      "info" : true,
+      "warn" : true,
+      "error" : true
+    }
+  }
+}
