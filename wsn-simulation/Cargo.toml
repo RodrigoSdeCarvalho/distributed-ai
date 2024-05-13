@@ -5,6 +5,6 @@ members = [
     "sensors",
     "system",
     "macros/benchmark_macro"
-]
+, "zeromq"]
 
 resolver = "2"
