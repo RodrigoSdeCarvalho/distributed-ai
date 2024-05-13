@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "gateway",
     "sensors",
     "system",
     "macros/benchmark_macro"

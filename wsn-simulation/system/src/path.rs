@@ -23,6 +23,15 @@ macro_rules! join_root {
 pub(crate) use join_root;
 
 impl Path {
+    pub fn get_data<T> (file_name: T) -> SysPath
+        where T: Display
+    {
+        let data_path: SysPath = join_root!("assets", "data");
+        let data_file_path = Path::join(&data_path, file_name.to_string());
+
+        data_file_path
+    }
+
     pub fn get_model<T>(file_name: T) -> SysPath
         where T: Display
     {
@@ -130,6 +139,9 @@ mod tests {
         println!("{:?}", models_path);
 
         let llama2_path = Path::get_model("Llama2");
-        print!("{:?}", llama2_path);
+        println!("{:?}", llama2_path);
+
+        let data_path = Path::get_data("data.csv");
+        println!("{:?}", data_path);
     }
 }

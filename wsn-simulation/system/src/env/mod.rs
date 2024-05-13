@@ -1,5 +1,4 @@
 pub mod config;
-pub mod db;
 
 use crate::path::{SysPath};
 use std::sync::Mutex;
