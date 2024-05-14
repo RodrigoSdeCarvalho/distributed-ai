@@ -15,7 +15,7 @@ pub struct Sensor {
     pub sampling_rate: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SensorDatapoint {
     pub source: String,
     pub sensor_type: String,
