@@ -4,10 +4,9 @@ use ::{zmq};
 
 use system::{Logger};
 
-//The publisher must have a socket to talk to clients and a socket to receive signals
-pub struct Publisher<'a> {
+pub struct Publisher {
     pub name: String,
-    pub context: &'a zmq::Context,
+    pub context: zmq::Context,
     pub sync_service_url: String,
     pub pub_service_url: String,
     pub publ_service: PubService,
@@ -17,13 +16,13 @@ pub struct Publisher<'a> {
 struct PubService {
     pub name: String,
     pub pub_service_url: String,
-    pub actor: zmq::Socket, // not sure if this is the type
+    pub actor: zmq::Socket,
 }
 
 struct SyncService {
     pub name: String,
     pub sync_service_url: String,
-    pub actor: zmq::Socket, // not sure if this is the type
+    pub actor: zmq::Socket,
 }
 
 impl PubService {
@@ -55,11 +54,10 @@ impl SyncService {
     }
 }
 
-//In the publisher implementation, in the constructor we build the publisher and the subscriber we also have send and receive method
-impl Publisher<'_> {
+impl Publisher {
     pub fn new(
         name: String,
-        context: &zmq::Context,
+        context: zmq::Context,
         sync_service_url: String,
         pub_service_url: String,
     ) -> Self {
@@ -67,13 +65,16 @@ impl Publisher<'_> {
         let name_clone2 = name.clone();
         let sync_service_url_clone = sync_service_url.clone();
         let pub_service_url_clone = pub_service_url.clone();
+
+        let publ_service = PubService::new(name_clone1.clone(), &context, pub_service_url_clone.clone());
+        let sync_service = SyncService::new(name_clone2.clone(), &context, sync_service_url_clone.clone());
         Self {
             name,
             context,
             sync_service_url,
             pub_service_url,
-            publ_service: PubService::new(name_clone1, context, pub_service_url_clone),
-            sync_service: SyncService::new(name_clone2, context, sync_service_url_clone),
+            publ_service,
+            sync_service,
         }
     }
 

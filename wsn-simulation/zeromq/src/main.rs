@@ -12,18 +12,18 @@ mod tests {
     // Make publisher and subscriber are working
     #[test]
     fn test_pub_sub() {
-        let context = zmq::Context::new();
-
+        let pub_context = zmq::Context::new();
         let mut publ = publisher::Publisher::new(
             "Publisher".to_string(),
-            &context,
+            pub_context,
             "tcp://*:5555".to_string(),
             "tcp://*:5556".to_string(),
         );
 
+        let sub_context = zmq::Context::new();
         let mut subs = subscriber::Subscriber::new(
             "Subscriber".to_string(),
-            &context,
+            sub_context,
             "tcp://localhost:5555".to_string(),
             "tcp://localhost:5556".to_string(),
         );
@@ -35,7 +35,7 @@ mod tests {
         }
 
         publ.send(&"Hello World".to_string());
-        let message = subs.receive();
-        assert_eq!(message, "Hello World");
+        let message: &str = subs.receive();
+        assert_eq!(message, &"Hello World".to_string());
     }
 }

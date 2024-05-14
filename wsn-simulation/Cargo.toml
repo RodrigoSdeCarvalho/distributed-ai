@@ -1,10 +1,10 @@
 [workspace]
 
 members = [
-    "gateway",
     "sensors",
     "system",
-    "macros/benchmark_macro"
-, "zeromq"]
+    "macros/benchmark_macro",
+    "zeromq"
+]
 
 resolver = "2"
