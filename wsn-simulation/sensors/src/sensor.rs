@@ -1,7 +1,9 @@
 use ureq;
 use chrono;
 use rocket::serde::json::serde_json;
+use reqwest::Client;
 use serde::{Serialize, Deserialize};
+use system::Logger;
 
 use super::data::SensorDataset;
 
@@ -13,7 +15,7 @@ pub struct Sensor {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct SensorDatapoint {
+pub struct SensorDatapoint {
     pub source: String,
     pub sensor_type: String,
     pub timestamp: i64,
@@ -63,13 +65,15 @@ struct StatusMessage {
 }
 
 impl Sensor {
-    pub fn sense(
+    pub async fn sense(
         self: &Self,
         gateway_url: String,
     ) {
         // let (mut socket, response) = connect(
         //     Url::parse(gateway_url).unwrap()
         // ).expect("Can't connect");
+
+        Logger::trace("Called Sense method", true);
 
         let dataset = SensorDataset::new(&self.name);
 
@@ -83,16 +87,14 @@ impl Sensor {
 
             let json_value = serde_json::to_value(datapoint).unwrap();
 
-            let response: StatusMessage = ureq::post(gateway_url.as_str())
-                .send_json(json_value).unwrap()
-                .into_json().unwrap();
+            let client = Client::new();
 
-            println!("{:?}", response);
-
-            // socket.write_message(Message::Text(
-            //     serde_json::to_string(&datapoint).unwrap()
-            // )).unwrap();
-            // sleep(std::time::Duration::from_millis(1000));
+            println!("Sending data: {:?}", json_value);
+            let res = client.post("http://127.0.0.1:8000/push_data")
+                .json(&json_value)
+                .send()
+                .await;
+            println!("Response: {:?}", res);
         }
     }
 }
