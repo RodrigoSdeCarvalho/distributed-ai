@@ -4,10 +4,9 @@ use ::{zmq};
 
 use system::{Logger};
 
-struct Subscriber {
+pub struct Subscriber<'a> {
     pub name: String,
-    pub source: String,
-    pub context: zmq::Context,
+    pub context: &'a zmq::Context,
     pub sync_service_url: String,
     pub sub_service_url: String,
     pub sub_service: SubService,
@@ -25,7 +24,7 @@ struct SyncService {
 }
 
 impl SubService {
-    pub fn new(name: String, context: zmq::Context, sub_service_url: String) -> Self {
+    pub fn new<'a>(name: String, context: &'a zmq::Context, sub_service_url: String) -> Self {
         let actor = context.socket(zmq::SUB).unwrap();
         actor
             .connect(sub_service_url.as_str())
@@ -42,7 +41,7 @@ impl SubService {
 }
 
 impl SyncService {
-    pub fn new(name: String, context: zmq::Context, sync_service_url: String) -> Self {
+    pub fn new<'a>(name: String, context: &'a zmq::Context, sync_service_url: String) -> Self {
         let actor = context.socket(zmq::REQ).unwrap();
         actor
             .connect(sync_service_url.as_str())
@@ -57,28 +56,30 @@ impl SyncService {
     }
 }
 
-impl Subscriber {
+impl Subscriber<'_> {
     pub fn new(
         name: String,
-        source: String,
-        context: zmq::Context,
+        context: &zmq::Context,
         sync_service_url: String,
         sub_service_url: String,
     ) -> Self {
+        let name_clone1 = name.clone();
+        let name_clone2 = name.clone();
+        let sync_service_url_clone = sync_service_url.clone();
+        let sub_service_url_clone = sub_service_url.clone();
         Self {
             name,
-            source,
             context,
             sync_service_url,
             sub_service_url,
-            sub_service: SubService::new(name.clone(), context.clone(), sub_service_url.clone()),
-            sync_service: SyncService::new(name.clone(), context.clone(), sync_service_url.clone()),
+            sub_service: SubService::new(name_clone1, context, sync_service_url_clone),
+            sync_service: SyncService::new(name_clone2, context, sub_service_url_clone),
         }
     }
 
     pub fn receive(&self) {
         let message = self.sub_service.actor.recv_msg(0).expect("failed receiving message");
-        Logger::log(&format!("{} received: {:?}", self.name, message));
+        Logger::info(&format!("{} received: {:?}", self.name, message), true);
     }
 
 }
