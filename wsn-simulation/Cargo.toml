@@ -4,7 +4,8 @@ members = [
     "sensors",
     "system",
     "macros/benchmark_macro",
-    "zeromq"
+    "zeromq",
+    "websocket"
 ]
 
 resolver = "2"
