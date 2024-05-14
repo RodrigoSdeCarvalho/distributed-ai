@@ -1,5 +1,6 @@
 
 use chrono;
+use zmq::Sendable;
 use ::{zmq};
 
 use system::{Logger};
@@ -78,7 +79,9 @@ impl Publisher {
         }
     }
 
-    pub fn send(&self, message: &str) {
+    pub fn send<T>(&self, message: T)
+    where T: Sendable
+    {
         self.publ_service.actor.send(message, 0).expect("failed broadcasting");
     }
 

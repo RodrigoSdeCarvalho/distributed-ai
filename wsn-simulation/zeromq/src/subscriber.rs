@@ -1,5 +1,6 @@
 use std::thread;
 use std::time::Duration;
+use zmq::Message;
 use ::{zmq};
 
 use system::{Logger};
@@ -81,10 +82,9 @@ impl Subscriber {
         }
     }
 
-    pub fn receive(&self) -> String {
+    pub fn receive(&self) -> Message {
         let message = self.sub_service.actor.recv_msg(0).expect("failed receiving message");
         Logger::info(&format!("{} received: {:?}", self.name, message), true);
         message
     }
-
 }

@@ -7,7 +7,6 @@ fn main() {
 mod tests {
     use zeromq::publisher;
     use zeromq::subscriber;
-    use super::*;
 
     // Make publisher and subscriber are working
     #[test]
@@ -21,7 +20,7 @@ mod tests {
         );
 
         let sub_context = zmq::Context::new();
-        let mut subs = subscriber::Subscriber::new(
+        let subs = subscriber::Subscriber::new(
             "Subscriber".to_string(),
             sub_context,
             "tcp://localhost:5555".to_string(),
@@ -34,8 +33,12 @@ mod tests {
             publ.send_sync();
         }
 
-        publ.send(&"Hello World".to_string());
-        let message: &str = subs.receive();
-        assert_eq!(message, &"Hello World".to_string());
+        publ.send("Hello World");
+        let binding = subs.receive();
+        let message = binding
+            .as_str()
+            .unwrap();
+
+        assert_eq!(message, "Hello World");
     }
 }
