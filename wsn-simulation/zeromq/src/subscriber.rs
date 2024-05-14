@@ -1,5 +1,3 @@
-use std::thread;
-use std::time::Duration;
 use zmq::Message;
 use ::{zmq};
 
@@ -13,11 +11,13 @@ pub struct Subscriber {
     pub sub_service: SubService,
     pub sync_service: SyncService,
 }
+
 struct SubService {
     pub name: String,
     pub sub_service_url: String,
     pub actor: zmq::Socket,
 }
+
 struct SyncService {
     pub name: String,
     pub sync_service_url: String,
