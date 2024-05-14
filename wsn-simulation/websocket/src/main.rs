@@ -30,8 +30,6 @@ struct Aggregator {
 
 impl Aggregator {
     fn add_data(&mut self, data: SensorDatapoint) {
-        self.publisher.receive_sync();
-        self.publisher.send_sync();
         self.data.push(data);
         if self.data.len() == 5 {
             self.send_batch();
@@ -42,6 +40,8 @@ impl Aggregator {
     fn send_batch(&self) {
         println!("Sending batch of data: {:?}", self.data);
         //Conver self.data to string
+        self.publisher.receive_sync();
+        self.publisher.send_sync();
         let string_data = serde_json::to_string(&ComposeSensorData {items: self.data.clone()}).unwrap();
         self.publisher.send(&string_data);
     }

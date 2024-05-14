@@ -83,10 +83,12 @@ impl Publisher {
     where T: Sendable
     {
         self.publ_service.actor.send(message, 0).expect("failed broadcasting");
+        Logger::trace(&format!("{} publisher sent message", self.name), true);
     }
 
     pub fn receive_sync(&self) {
         self.sync_service.actor.recv_msg(0).expect("failed receiving sync");
+        Logger::trace(&format!("{} publisher receive sync", self.name), true);
     }
 
     pub fn send_sync(&self) {
