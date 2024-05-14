@@ -19,10 +19,8 @@ fn main() {
 
     //get syncronization from subscribers
     println!("Waiting for subscribers");
-    for _ in 0..10 {
-        syncservice.recv_msg(0).expect("failed receiving sync");
-        syncservice.send("", 0).expect("failed sending sync");
-    }
+    syncservice.recv_msg(0).expect("failed receiving sync");
+    syncservice.send("", 0).expect("failed sending sync");
     //now broadcast 1M updates followed by end
     println!("Broadcasting messages");
     for _ in 0..1_000_000 {

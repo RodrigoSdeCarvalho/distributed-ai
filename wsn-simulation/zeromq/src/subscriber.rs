@@ -1,3 +1,5 @@
+use std::thread;
+use std::time::Duration;
 use zmq::Message;
 use ::{zmq};
 
@@ -70,6 +72,7 @@ impl Subscriber {
         let sub_service_url_clone = sub_service_url.clone();
 
         let sub_service = SubService::new(name_clone1, &context, sync_service_url_clone);
+        thread::sleep(Duration::from_millis(1));
         let sync_service = SyncService::new(name_clone2, &context, sub_service_url_clone);
 
         Self {
