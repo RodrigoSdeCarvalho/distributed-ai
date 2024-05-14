@@ -1,38 +1,20 @@
 use system::Logger;
 use zeromq::subscriber;
-use std::thread;
-use std::time::Duration;
 
 fn main() {
-    let context = zmq::Context::new();
+    let sub_context = zmq::Context::new();
+    Logger::trace("Starting Subscriber", true);
+    let subs = subscriber::Subscriber::new(
+        "Subscriber".to_string(),
+        sub_context,
+        "tcp://localhost:5555".to_string(),
+        "tcp://localhost:5556".to_string(),
+    );
+    Logger::trace("Subscriber started", true);
 
-    //first connect our subscriber
-    let subscriber = context.socket(zmq::SUB).unwrap();
-    subscriber
-        .connect("tcp://localhost:5561")
-        .expect("failed connecting subscriber");
-    subscriber
-        .set_subscribe(b"")
-        .expect("failed setting subscription");
-    thread::sleep(Duration::from_millis(1));
-
-    let syncclient = context.socket(zmq::REQ).unwrap();
-    syncclient
-        .connect("tcp://localhost:5562")
-        .expect("failed connect syncclient");
-    syncclient.send("", 0).expect("failed sending sync request");
-    syncclient.recv_msg(0).expect("failed receiving sync reply");
-
-    let mut update_nbr = 0;
-    loop {
-        let message = subscriber
-            .recv_string(0)
-            .expect("failed receiving update")
-            .unwrap();
-        if message == "END" {
-            break;
-        }
-        update_nbr += 1;
-    }
-    println!("Received {} updates", update_nbr);
+    let binding = subs.receive();
+    let message = binding
+        .as_str()
+        .unwrap();
+    Logger::trace(&format!("Received: {}", message), true);
 }

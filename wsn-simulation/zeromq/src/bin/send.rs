@@ -2,29 +2,19 @@ use system::Logger;
 use zeromq::publisher;
 
 fn main() {
-    let context = zmq::Context::new();
+    Logger::trace("Starting ZeroMQ publisher", true);
+    let pub_context = zmq::Context::new();
+    let publ = publisher::Publisher::new(
+        "Publisher".to_string(),
+        pub_context,
+        "tcp://*:5555".to_string(),
+        "tcp://*:5556".to_string(),
+    );
+    Logger::trace("Publisher started", true);
 
-    //socket to talk to clients
-    let publisher = context.socket(zmq::PUB).unwrap();
-    publisher.set_sndhwm(1_100_000).expect("failed setting hwm");
-    publisher
-        .bind("tcp://*:5561")
-        .expect("failed binding publisher");
+    Logger::trace("Waiting for subscribers", true);
+    publ.receive_sync();
+    publ.send_sync();
 
-    //socket to receive signals
-    let syncservice = context.socket(zmq::REP).unwrap();
-    syncservice
-        .bind("tcp://*:5562")
-        .expect("failed binding syncservice");
-
-    //get syncronization from subscribers
-    println!("Waiting for subscribers");
-    syncservice.recv_msg(0).expect("failed receiving sync");
-    syncservice.send("", 0).expect("failed sending sync");
-    //now broadcast 1M updates followed by end
-    println!("Broadcasting messages");
-    for _ in 0..1_000_000 {
-        publisher.send("Rhubarb", 0).expect("failed broadcasting");
-    }
-    publisher.send("END", 0).expect("failed sending end");
+    publ.send("Hello World");
 }
