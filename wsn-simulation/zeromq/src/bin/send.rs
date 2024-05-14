@@ -14,7 +14,9 @@ fn main() {
 
     Logger::trace("Waiting for subscribers", true);
     publ.receive_sync();
+    Logger::trace("Subscriber connected", true);
     publ.send_sync();
+    Logger::trace("Sync sent", true);
 
     publ.send("Hello World");
 }

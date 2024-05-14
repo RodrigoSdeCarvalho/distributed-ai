@@ -32,9 +32,11 @@ impl SubService {
         actor
             .connect(sub_service_url.as_str())
             .expect("failed connecting Subscriber");
+        Logger::trace(&format!("{} connected", name), true);
         actor
             .set_subscribe(b"")
             .expect("failed setting subscription");
+        Logger::trace(&format!("{} subscribed", name), true);
         Self {
             name,
             sub_service_url,
@@ -49,8 +51,11 @@ impl SyncService {
         actor
             .connect(sync_service_url.as_str())
             .expect("failed connecting SyncService");
+        Logger::trace(&format!("{} connected sync service", name), true);
         actor.send("", 0).expect("failed sending sync request");
+        Logger::trace(&format!("{} sync service sent", name), true);
         actor.recv_msg(0).expect("failed receiving sync reply");
+        Logger::trace(&format!("{} sync service received", name), true);
         Self {
             name,
             sync_service_url,
@@ -71,9 +76,8 @@ impl Subscriber {
         let sync_service_url_clone = sync_service_url.clone();
         let sub_service_url_clone = sub_service_url.clone();
 
-        let sub_service = SubService::new(name_clone1, &context, sync_service_url_clone);
-        thread::sleep(Duration::from_millis(1));
-        let sync_service = SyncService::new(name_clone2, &context, sub_service_url_clone);
+        let sub_service = SubService::new(name_clone1, &context, sub_service_url_clone);
+        let sync_service = SyncService::new(name_clone2, &context, sync_service_url_clone);
 
         Self {
             name,

@@ -91,5 +91,6 @@ impl Publisher {
 
     pub fn send_sync(&self) {
         self.sync_service.actor.send("", 0).expect("failed sending sync");
+        Logger::trace(&format!("{} publisher sent sync", self.name), true);
     }
 }
