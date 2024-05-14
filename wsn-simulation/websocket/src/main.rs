@@ -2,7 +2,7 @@
 
 use rocket::futures::{SinkExt, StreamExt};
 
-#[get("/echo")]
+#[get("/ws")]
 fn echo(ws: ws::WebSocket) -> ws::Channel<'static> {
     ws.channel(move |mut stream| Box::pin(async move {
         while let Some(message) = stream.next().await {
@@ -13,6 +13,7 @@ fn echo(ws: ws::WebSocket) -> ws::Channel<'static> {
         Ok(())
     }))
 }
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()

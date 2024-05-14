@@ -1,12 +1,7 @@
-use url::Url;
-use tungstenite::{connect, Message};
-use std::thread;
-use std::thread::sleep;
+use ureq;
 use chrono;
 use rocket::serde::json::serde_json;
 use serde::{Serialize, Deserialize};
-
-use system::{Logger};
 
 use super::data::SensorDataset;
 
@@ -14,7 +9,7 @@ pub struct Sensor {
     pub name: String,
     pub source: String,
     pub sensor_type: String,
-    pub sampling_rate: i32, // in milliseconds
+    pub sampling_rate: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -27,7 +22,7 @@ struct SensorDatapoint {
 
 pub const GLOBAL_SAMPLING_RATE: i32 = 5000; // 5 seconds in milliseconds
 
-fn get_sensors() -> Vec<Sensor> {
+pub fn get_sensors() -> Vec<Sensor> {
     let sensors = vec!(Sensor {
         name: String::from("Kitchen_Brightness"),
         source: String::from("Kitchen"),
@@ -61,25 +56,23 @@ fn get_sensors() -> Vec<Sensor> {
     sensors
 }
 
+#[derive(serde::Deserialize, Debug)]
+struct StatusMessage {
+    status: String,
+    message: String,
+}
+
 impl Sensor {
     pub fn sense(
         self: &Self,
-        gateway_url: impl AsRef<str>,
+        gateway_url: String,
     ) {
-        thread::sleep(std::time::Duration::from_secs(10));
-        let (mut socket, response) = connect(
-            Url::parse("ws://127.0.0.1:8000/echo").unwrap()
-        ).expect("Can't connect");
-        // Logger::info(
-        //     &format!("Connected to websocket: {}", response.status()),
-        //     true,
-        // );
+        // let (mut socket, response) = connect(
+        //     Url::parse(gateway_url).unwrap()
+        // ).expect("Can't connect");
 
-        // Logger::info(
-        //     &format!("Sending data from sensor {}...", &self.name),
-        //     true,
-        // );
         let dataset = SensorDataset::new(&self.name);
+
         for value in dataset.iter() {
             let datapoint = SensorDatapoint {
                 source: self.source.clone(),
@@ -87,24 +80,26 @@ impl Sensor {
                 timestamp: chrono::Utc::now().timestamp(),
                 value: value.unwrap(),
             };
-            // Logger::info(
-            //     &format!(
-            //         "Sensed data from sensor {}: {} at {}",
-            //         self.name, datapoint.value, datapoint.timestamp
-            //     ),
-            //     true,
-            // );
-            socket.send(Message::Text(
-                serde_json::to_string(&datapoint).unwrap()
-            )).unwrap();
-            sleep(std::time::Duration::from_millis(1000));
+
+            let json_value = serde_json::to_value(datapoint).unwrap();
+
+            let response: StatusMessage = ureq::post(gateway_url.as_str())
+                .send_json(json_value).unwrap()
+                .into_json().unwrap();
+
+            println!("{:?}", response);
+
+            // socket.write_message(Message::Text(
+            //     serde_json::to_string(&datapoint).unwrap()
+            // )).unwrap();
+            // sleep(std::time::Duration::from_millis(1000));
         }
-        socket.close(None).unwrap();
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use serde::de::Unexpected::Str;
     use super::*;
 
     #[test]
@@ -115,19 +110,6 @@ mod tests {
             sensor_type: "Brightness".to_string(),
             sampling_rate: GLOBAL_SAMPLING_RATE,
         };
-        sensor.sense("http://127.0.0.1:8000/ws");
-    }
-
-    #[test]
-    fn test_get_sensors() {
-        let (mut socket, response) = connect(
-            Url::parse("ws://127.0.0.1:8000/echo").unwrap()
-        ).expect("Can't connect");
-
-        loop {
-            print!("Enter a message: ");
-            let message = socket.read().unwrap();
-            println!("Received: {}", message);
-        }
+        sensor.sense(String::from("http://127.0.0.1:8000/push-data"));
     }
 }
