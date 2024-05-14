@@ -1,3 +1,4 @@
+use std::thread;
 use ureq;
 use chrono;
 use rocket::serde::json::serde_json;
@@ -94,6 +95,10 @@ impl Sensor {
                 .json(&json_value)
                 .send()
                 .await;
+
+            thread::sleep(std::time::Duration::from_secs(1));
+
+
             println!("Response: {:?}", res);
         }
     }

@@ -3,6 +3,13 @@ extern crate rocket;
 use rocket::serde::{Serialize, json::Json};
 use sensors::sensor::SensorDatapoint;
 
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref AGGREGATOR: Mutex<Aggregator> = Mutex::new(Aggregator {data: Vec::new()});
+}
+
 #[derive(Serialize)]
 struct ComposeSensorData {
     items: Vec<SensorDatapoint>
@@ -13,40 +20,35 @@ struct StatusMessage {
     message: String
 }
 
+struct Aggregator {
+    data: Vec<SensorDatapoint>
+}
+
+impl Aggregator {
+    fn add_data(&mut self, data: SensorDatapoint) {
+        self.data.push(data);
+        if self.data.len() == 5 {
+            self.send_batch();
+            self.data.clear();
+        }
+    }
+
+    fn send_batch(&self) {
+        println!("Sending batch of data: {:?}", self.data);
+    }
+
+}
 
 #[post("/push_data", format = "json", data = "<item>")]
 fn push_data(item: Json<SensorDatapoint>) -> Result<Json<StatusMessage>, String> {
     // Extract the SensorDataPoint from the Json wrapper
     let sensor_data_point: SensorDatapoint = item.into_inner();
 
-    // Assuming you have a storage mechanism to store/retrieve SensorDataPoints
-    // Here you can add the logic to store the received SensorDataPoint in a database or other storage
+    AGGREGATOR.lock().unwrap().add_data(sensor_data_point);
 
-    // Example: Store the extracted SensorDataPoint in a database or vector
-    let mut data_store: Vec<SensorDatapoint> = vec![];
-    data_store.push(sensor_data_point); // Store the received SensorDataPoint
-
-    // Check if there are enough items to create a batch of five
-    if data_store.len() >= 5 {
-        let mut batches: Vec<ComposeSensorData> = vec![];
-        let mut current_batch: Vec<SensorDatapoint> = vec![];
-
-        batches.push(ComposeSensorData { items: current_batch, });
-
-
-        // Clear the data_store after processing
-    data_store.clear();
-
-    Ok(Json(StatusMessage {
-        message: format!("Received and processed data successfully. Created {} batches.", batches.len()),
-    }))
-    }
-    else
-    { Ok(Json(StatusMessage {
-            message: format!("Received data successfully. Waiting for more data to create a batch."),
-        }))
-    }
+    Ok(Json(StatusMessage {message: "Received and processed data successfully.".to_string()}))
 }
+
 
 #[get("/")]
 fn index() -> &'static str {
